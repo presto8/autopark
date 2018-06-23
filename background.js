@@ -1,7 +1,7 @@
 var tabTimes = new Array();
 
 function setTabTime(tab) {
-    if (tab.url == 'undefined' || onWhitelist(tab.url)) {
+    if (tab.url == null || onWhitelist(tab.url)) {
         return;
     }
 
@@ -15,6 +15,9 @@ function init() {
 
     // Register callback to listen for new tabs created from now on
     chrome.tabs.onCreated.addListener(onCreateTab);
+
+    // Update a tab's time whenever it's activated
+    chrome.tabs.onActivated.addListener(onActivateTab);
 }
 
 function onCreateTab(tab) {
@@ -59,19 +62,19 @@ function onWhitelist(url) {
                  'pinboard.in/',
                 ];
     matches = whitelist.filter(x => url.indexOf(x) > -1);
-    console.log("ignoring whitelisted url: ", url);
     return matches.length > 0;
 }
 
 function onOldTab(tabid, tab) {
-    console.log("entering inOldTab: ", tab);
-    if (tab == null) {
+    if (chrome.runtime.lastError) {
         console.log("removing tab that no longer exists: ", tabid);
         delete tabTimes[tabid];
         return;
     }
 
-    if (tab.url == 'undefined') {
+    if (tab.url == null) {
+        console.log("removing tab that doesn't have a url: ", tabid);
+        delete tabTimes[tabid];
         return;
     }
 
@@ -82,6 +85,7 @@ function onOldTab(tabid, tab) {
     console.log(tab.url + ' is inactive, time to park it');
     addPinboardIn(tab.url, tab.title, function() { 
         chrome.tabs.remove(tab.id);
+        delete tabTimes[tabid];
     });
 }
 
@@ -99,8 +103,6 @@ function findTabsOlderThanMinutes(minutes) {
 }
 
 window.addEventListener("load", init);
-chrome.tabs.onCreated.addListener(onCreateTab);
-chrome.tabs.onActivated.addListener(onActivateTab);
 // chrome.windows.onFocusChanged.addListener(setTabTime);
 chrome.tabs.onDetached.addListener(setTabTime);
 chrome.tabs.onAttached.addListener(setTabTime);
