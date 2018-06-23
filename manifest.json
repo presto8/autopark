@@ -1,7 +1,11 @@
-  {
-    "name": "autopinboard",
-    "version": "0.1",
-    "description": "Save idle tabs to pinboard.in",
-    "manifest_version": 2
-  }
-
+{
+  "name": "autopinboard",
+  "version": "0.1",
+  "description": "Save idle tabs to pinboard.in",
+  "permissions": ["tabs"],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+  "manifest_version": 2
+}
