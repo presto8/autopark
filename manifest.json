@@ -1,0 +1,7 @@
+  {
+    "name": "autopinboard",
+    "version": "0.1",
+    "description": "Save idle tabs to pinboard.in",
+    "manifest_version": 2
+  }
+
