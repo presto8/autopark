@@ -1,20 +1,27 @@
 <!DOCTYPE html>
 <html>
-<head><title>My Test Extension Options</title></head>
+<head><title>AutoPark Options</title></head>
 <body>
 
-Favorite color:
-<select id="color">
- <option value="red">red</option>
- <option value="green">green</option>
- <option value="blue">blue</option>
- <option value="yellow">yellow</option>
-</select>
+<p>
+Park time (in minutes):
+<input id="parktime"></input>
+</p>
 
-<label>
-  <input type="checkbox" id="like">
-  I like colors.
-</label>
+<p>
+Pinboard.in auth token:
+<input id="authtoken"></input>
+</p>
+
+<p>
+Pinboard.in tag name:
+<input id="tag"></input>
+</p>
+
+<p>
+Bookmark folder name:
+<input id="bookmarkfolder"></input>
+</p>
 
 <div id="status"></div>
 <button id="save">Save</button>
