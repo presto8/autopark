@@ -49,12 +49,11 @@ function addPinboardIn(url, title, callback=null) {
     req.send()
 }
 
-function getBookmarkFolder() {
-    chrome.bookmarks.create({title: 'AutoParked'});
-}
-
-function addBookmark() {
-    //chrome.bookmarks.create(
+function addTabToBookmarkFolder(tab) {
+    chrome.bookmarks.search('Parked', function(results){
+        var folder = results[0];
+        chrome.bookmarks.create({parentId: folder.id, title: tab.title, url: tab.url});
+    });
 }
 
 function onWhitelist(url) {
@@ -88,6 +87,8 @@ function onOldTab(tabid, tab) {
         chrome.tabs.remove(tab.id);
         delete tabTimes[tabid];
     });
+
+    addTabToBookmarkFolder(tab);
 }
 
 function findTabsOlderThanMinutes(minutes) {
