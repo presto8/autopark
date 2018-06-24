@@ -26,7 +26,7 @@ function onCreateTab(tab) {
 
 function onActivateTab(activeInfo) {
     chrome.tabs.get(activeInfo.tabId, setTabTime);
-    findTabsOlderThanMinutes(1);
+    findTabsOlderThanMinutes(120);
 }
 
 function addPinboardIn(url, title, callback=null) {
@@ -35,12 +35,13 @@ function addPinboardIn(url, title, callback=null) {
         '&description=' + encodeURIComponent(title) + 
         '&tags=autopark' + 
         '&toread=yes' +
+        '&replace=no' +  // todo: retrieve existing entry and add autopark tag
         '&auth_token=presto8:0F2AFD30038CD0C39E4E';
 
     var req = new XMLHttpRequest();
     req.open('GET', addUrl);
     req.onload = function() {
-        console.log('added to pinboard.in! ' + url);
+        console.info('added to pinboard.in! ' + url);
         if (callback != null) {
             callback();
         }
@@ -67,13 +68,13 @@ function onWhitelist(url) {
 
 function onOldTab(tabid, tab) {
     if (chrome.runtime.lastError) {
-        console.log("removing tab that no longer exists: ", tabid);
+        console.info("removing tab that no longer exists: ", tabid);
         delete tabTimes[tabid];
         return;
     }
 
     if (tab.url == null) {
-        console.log("removing tab that doesn't have a url: ", tabid);
+        console.info("removing tab that doesn't have a url: ", tabid);
         delete tabTimes[tabid];
         return;
     }
@@ -82,7 +83,7 @@ function onOldTab(tabid, tab) {
         return;
     }
 
-    console.log(tab.url + ' is inactive, time to park it');
+    console.info(tab.url + ' is inactive, time to park it');
     addPinboardIn(tab.url, tab.title, function() { 
         chrome.tabs.remove(tab.id);
         delete tabTimes[tabid];
