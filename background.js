@@ -9,30 +9,6 @@ function setTabTime(tab) {
     tabTimes[tab.id] = now;
 }
 
-function init() {
-    // Initialize current time for all existing tabs
-    chrome.tabs.query({}, function(tabs){ tabs.map(setTabTime); });
-
-    // Register callback to listen for new tabs created from now on
-    chrome.tabs.onCreated.addListener(onCreateTab);
-
-    // Update a tab's time whenever it's activated
-    chrome.tabs.onActivated.addListener(onActivateTab);
-
-    // Update a tab's time whenever it's moved, detached, or attached to a window
-    chrome.tabs.onDetached.addListener(setTabTime);
-    chrome.tabs.onAttached.addListener(setTabTime);
-    chrome.tabs.onMoved.addListener(setTabTime);
-
-    // Remove tab whenever it's closed
-    chrome.tabs.onRemoved.addListener(x => delete tabTimes[x.id]);
-
-    // Run periodic scheduler every minute
-    setInterval(periodic, 30 * 1000);
-
-    // chrome.windows.onFocusChanged.addListener(setTabTime);
-}
-
 function periodic() {
     console.info("running periodic");
     findTabsOlderThanMinutes(60);
@@ -134,6 +110,30 @@ function findTabsOlderThanMinutes(minutes) {
             chrome.tabs.get(tabid, function(tab){ onOldTab(tabid, tab); });
         }
     }
+}
+
+function init() {
+    // Initialize current time for all existing tabs
+    chrome.tabs.query({}, function(tabs){ tabs.map(setTabTime); });
+
+    // Register callback to listen for new tabs created from now on
+    chrome.tabs.onCreated.addListener(onCreateTab);
+
+    // Update a tab's time whenever it's activated
+    chrome.tabs.onActivated.addListener(onActivateTab);
+
+    // Update a tab's time whenever it's moved, detached, or attached to a window
+    chrome.tabs.onDetached.addListener(setTabTime);
+    chrome.tabs.onAttached.addListener(setTabTime);
+    chrome.tabs.onMoved.addListener(setTabTime);
+
+    // Remove tab whenever it's closed
+    chrome.tabs.onRemoved.addListener(x => delete tabTimes[x.id]);
+
+    // Run periodic scheduler every minute
+    setInterval(periodic, 30 * 1000);
+
+    // chrome.windows.onFocusChanged.addListener(setTabTime);
 }
 
 window.addEventListener("load", init);
