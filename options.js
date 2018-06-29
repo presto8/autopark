@@ -1,31 +1,35 @@
 // Saves options to chrome.storage
-var fields = ['parktime', 'authtoken', 'tag', 'bookmarkfolder'];
+var options = {
+    parktime: 90,
+    authtoken: '',
+    tag: 'autopark',
+    bookmarkfolder: 'autopark',
+    ignoreurls: '',
+};
 
 function save_options() {
-    var options = Array();
-    fields.forEach(x => options[x] = document.getElementById(x).value);
-    console.log(options);
+    for (option in options) {
+        options[option] = document.getElementById(option).value;
+    }
 
-    chrome.storage.sync.set({options: options}, function() {
-        // Update status to let user know options were saved.
-        var status = document.getElementById('status');
-        status.textContent = 'Options saved.';
-        setTimeout(function() {
-            status.textContent = '';
-        }, 750);
+    chrome.storage.sync.set(options, function() {
+        if (chrome.runtime.lastError) {
+            console.info("unable to set!")
+            return;
+        }
     });
 }
 
-// Restores select box and checkbox state using the preferences
-// stored in chrome.storage.
+function restore_option(option, value) {
+    document.getElementById(option).value = value;
+    options[option] = value;
+}
+
 function restore_options() {
-    // Use default value color = 'red' and likesColor = true.
-    chrome.storage.sync.get({
-        favoriteColor: 'red',
-        likesColor: true
-    }, function(items) {
-        document.getElementById('color').value = items.favoriteColor;
-        document.getElementById('like').checked = items.likesColor;
+    chrome.storage.sync.get(options, function(items) {
+        for (item in items) {
+            restore_option(item, items[item]);
+        }
     });
 }
 

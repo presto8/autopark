@@ -1,5 +1,12 @@
 var tabTimes = new Array();
 
+var options = {
+    parktime: 90,
+    authtoken: '',
+    tag: 'autopark',
+    bookmarkfolder: 'autopark'
+};
+
 function setTabTime(tab) {
     if (tab.url == null || onWhitelist(tab.url)) {
         return;
@@ -29,7 +36,7 @@ function addPinboardIn(url, title, callback=null) {
         '&tags=autopark' + 
         '&toread=yes' +
         '&replace=no' +  // todo: retrieve existing entry and add autopark tag
-        '&auth_token=presto8:0F2AFD30038CD0C39E4E';
+        '&auth_token=' + options.authtoken; //presto8:0F2AFD30038CD0C39E4E';
 
     var req = new XMLHttpRequest();
     req.open('GET', addUrl);
@@ -63,10 +70,10 @@ function openPinboardTab() {
     // refresh tab if active else open a new one
     chrome.tabs.query({url: url}, function(result) {
         if (chrome.runtime.lastError) {
-            console.log("creating a new pinboard windows");
+            console.info("creating a new pinboard windows");
             chrome.tabs.create({url: 'https://pinboard.in/u:presto8/t:autopark'});
         } else {
-            console.log("refreshing existing windows");
+            console.info("refreshing existing windows");
             results.map(x => chrome.tabs.reload(x.id));
         }
     });
@@ -112,7 +119,18 @@ function findTabsOlderThanMinutes(minutes) {
     }
 }
 
+function restoreOptions() {
+    chrome.storage.sync.get(options, function(items) {
+        for (item in items) {
+            options[item] = items[item];
+        }
+        console.log(options);
+    });
+}
+
 function init() {
+    restoreOptions();
+
     // Initialize current time for all existing tabs
     chrome.tabs.query({}, function(tabs){ tabs.map(setTabTime); });
 

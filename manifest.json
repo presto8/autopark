@@ -1,10 +1,11 @@
 {
-    "name": "autopinboard",
-    "version": "0.1",
+    "name": "autopark",
+    "version": "20180629",
     "description": "Save idle tabs to pinboard.in",
     "permissions": [
         "tabs",
         "bookmarks",
+        "storage",
         "https://api.pinboard.in/*"
     ],
     "background": {
