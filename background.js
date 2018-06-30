@@ -65,7 +65,7 @@ function addTabToBookmarkFolder(tab) {
 
 function onWhitelist(url) {
     var whitelist = options.ignoreurls.split('\n');
-    matches = whitelist.filter(x => x != '' && url.indexOf(x) > -1);
+    matches = whitelist.filter(x => x !== '' && url.indexOf(x) > -1);
     return matches.length > 0;
 }
 
