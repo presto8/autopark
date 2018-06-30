@@ -1,6 +1,6 @@
 {
     "name": "autopark",
-    "version": "20180629",
+    "version": "1",
     "description": "Save idle tabs to pinboard.in",
     "permissions": [
         "tabs",

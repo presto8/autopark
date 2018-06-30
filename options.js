@@ -1,5 +1,4 @@
-var background = chrome.extension.getBackgroundPage();
-var options = background.options;
+var options;
 
 function save_options() {
     for (option in options) {
@@ -19,9 +18,13 @@ function save_options() {
 }
 
 function restore_options() {
-    for (option in options) {
-        document.getElementById(option).value = options[option];
-    }
+    chrome.runtime.getBackgroundPage(function(background) {
+        options = background.options;
+
+        for (option in options) {
+            document.getElementById(option).value = options[option];
+        }
+    });
 }
 
 document.addEventListener('DOMContentLoaded', restore_options);
