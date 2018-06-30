@@ -1,11 +1,5 @@
-// Saves options to chrome.storage
-var options = {
-    parktime: 90,
-    authtoken: '',
-    tag: 'autopark',
-    bookmarkfolder: 'autopark',
-    ignoreurls: '',
-};
+var background = chrome.extension.getBackgroundPage();
+var options = background.options;
 
 function save_options() {
     for (option in options) {
@@ -14,23 +8,20 @@ function save_options() {
 
     chrome.storage.sync.set(options, function() {
         if (chrome.runtime.lastError) {
-            console.info("unable to set!")
+            console.info('unable to set!');
             return;
+        } else {
+            var status = document.getElementById('status');
+            status.textContent = 'Options saved.';
+            setTimeout(function(){ status.textContent = ''; }, 2000);
         }
     });
-}
-
-function restore_option(option, value) {
-    document.getElementById(option).value = value;
-    options[option] = value;
 }
 
 function restore_options() {
-    chrome.storage.sync.get(options, function(items) {
-        for (item in items) {
-            restore_option(item, items[item]);
-        }
-    });
+    for (option in options) {
+        document.getElementById(option).value = options[option];
+    }
 }
 
 document.addEventListener('DOMContentLoaded', restore_options);
