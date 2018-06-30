@@ -1,5 +1,5 @@
-var tabTimes = new Array();
-
+var debugMode = true;
+var tabTimes = [];
 var options = {
     parktime: 90,
     authtoken: '',
@@ -8,8 +8,14 @@ var options = {
     ignoreurls: '',
 };
 
+function log(mesg) {
+    if (debugMode) {
+        console.log(mesg);
+    }
+}
+
 function setTabTime(tab) {
-    if (tab.url == null || onWhitelist(tab.url)) {
+    if (tab.url === null || onWhitelist(tab.url)) {
         return;
     }
 
@@ -18,7 +24,7 @@ function setTabTime(tab) {
 }
 
 function periodic() {
-    console.info('running periodic');
+    log('running periodic');
     findTabsOlderThanMinutes(60);
 }
 
@@ -42,8 +48,8 @@ function addPinboardIn(authtoken, url, title, callback) {
     var req = new XMLHttpRequest();
     req.open('GET', addUrl);
     req.onload = function() {
-        console.info('added to pinboard.in! ' + url);
-        if (callback != null) {
+        log('added to pinboard.in! ' + url);
+        if (callback !== null) {
             callback();
         }
     };
@@ -70,10 +76,10 @@ function openPinboardTab(authtoken) {
     // refresh tab if active else open a new one
     chrome.tabs.query({url: url}, function(results) {
         if (chrome.runtime.lastError) {
-            console.info("creating a new pinboard windows");
+            log('creating a new pinboard windows');
             chrome.tabs.create({url: 'https://pinboard.in/u:presto8/t:autopark'});
         } else {
-            console.info('refreshing existing windows');
+            log('refreshing existing windows');
             results.map(x => chrome.tabs.reload(x.id));
         }
     });
@@ -85,22 +91,22 @@ function onOldTab(tabid, tab) {
         return;
     }
 
-    if (tab.url == null) {
-        console.info('removing tab without an url: ', tabid);
+    if (tab.url === null) {
+        log('removing tab without an url: ', tabid);
         delete tabTimes[tabid];
         return;
     }
 
     if (onWhitelist(tab.url)) {
-        console.log(tab.url + ' is on the whitelist');
+        log(tab.url + ' is on the whitelist');
         return;
     }
 
     addTabToBookmarkFolder(tab);
 
     var authtoken = options.authtoken;
-    if (authtoken.length == 0) {
-        console.log('not saving pinboard.in because authtoken not set in options');
+    if (authtoken.length === 0) {
+        log('not saving pinboard.in because authtoken not set in options');
         return;
     }
 
@@ -127,7 +133,7 @@ function findTabsOlderThanMinutes(minutes) {
 
 function restoreOptions() {
     chrome.storage.sync.get(options, function(items) {
-        for (item in items) {
+        for (var item in items) {
             options[item] = items[item];
         }
     });
