@@ -5,9 +5,9 @@ var options = {
     authtoken: '',
     tag: 'autopark',
     bookmarkfolder: 'autopark',
-    ignoreurls: ['chrome://',
-                 'google.com/mail',
-                ]
+    ignoreurls: `chrome://
+google.com/mail
+`
 };
 
 function log(mesg) {
@@ -120,7 +120,6 @@ function onOldTab(tabid, tab) {
 }
 
 function findTabsOlderThanMinutes(minutes) {
-    log('finding tabs older than ' + minutes);
     var cutoffTime = new Date();
     cutoffTime.setMinutes(cutoffTime.getMinutes() - minutes);
 
@@ -138,14 +137,17 @@ function restoreOptions() {
         for (var item in items) {
             options[item] = items[item];
         }
+
+        // Initialize current time for all existing tabs
+        chrome.tabs.query({}, function(tabs){ tabs.map(setTabTime); });
     });
 }
 
 function init() {
     restoreOptions();
 
-    // Initialize current time for all existing tabs
-    chrome.tabs.query({}, function(tabs){ tabs.map(setTabTime); });
+//    // Initialize current time for all existing tabs
+//    chrome.tabs.query({}, function(tabs){ tabs.map(setTabTime); });
 
     // Register callback to listen for new tabs created from now on
     chrome.tabs.onCreated.addListener(onCreateTab);
