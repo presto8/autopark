@@ -5,7 +5,9 @@ var options = {
     authtoken: '',
     tag: 'autopark',
     bookmarkfolder: 'autopark',
-    ignoreurls: '',
+    ignoreurls: ['chrome://',
+                 'google.com/mail',
+                ]
 };
 
 function log(mesg) {
@@ -24,8 +26,7 @@ function setTabTime(tab) {
 }
 
 function periodic() {
-    log('running periodic');
-    findTabsOlderThanMinutes(60);
+    findTabsOlderThanMinutes(options.parktime);
 }
 
 function onCreateTab(tab) {
@@ -56,8 +57,8 @@ function addPinboardIn(authtoken, url, title, callback) {
     req.send();
 }
 
-function addTabToBookmarkFolder(tab) {
-    chrome.bookmarks.search('Parked', function(results){
+function addTabToBookmarkFolder(tab, foldername) {
+    chrome.bookmarks.search(foldername, function(results){
         var folder = results[0];
         chrome.bookmarks.create({parentId: folder.id, title: tab.title, url: tab.url});
     });
@@ -102,7 +103,7 @@ function onOldTab(tabid, tab) {
         return;
     }
 
-    addTabToBookmarkFolder(tab);
+    addTabToBookmarkFolder(tab, options.bookmarkfolder);
 
     var authtoken = options.authtoken;
     if (authtoken.length === 0) {
@@ -119,6 +120,7 @@ function onOldTab(tabid, tab) {
 }
 
 function findTabsOlderThanMinutes(minutes) {
+    log('finding tabs older than ' + minutes);
     var cutoffTime = new Date();
     cutoffTime.setMinutes(cutoffTime.getMinutes() - minutes);
 
@@ -160,7 +162,7 @@ function init() {
     chrome.tabs.onRemoved.addListener(x => delete tabTimes[x.id]);
 
     // Run periodic scheduler every minute
-    setInterval(periodic, 30 * 1000);
+    setInterval(periodic, 60 * 1000);
 
     // chrome.windows.onFocusChanged.addListener(setTabTime);
 }
