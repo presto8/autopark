@@ -17,7 +17,7 @@ function log(mesg) {
 }
 
 function setTabTime(tab) {
-    if (tab.url === null || onWhitelist(tab.url)) {
+    if (tab.url === null || onIgnoreList(tab.url)) {
         return;
     }
 
@@ -64,7 +64,7 @@ function addTabToBookmarkFolder(tab, foldername) {
     });
 }
 
-function onWhitelist(url) {
+function onIgnoreList(url) {
     var whitelist = options.ignoreurls.split('\n');
     matches = whitelist.filter(x => x !== '' && url.indexOf(x) > -1);
     return matches.length > 0;
@@ -98,8 +98,8 @@ function onOldTab(tabid, tab) {
         return;
     }
 
-    if (onWhitelist(tab.url)) {
-        log(tab.url + ' is on the whitelist');
+    if (onIgnoreList(tab.url)) {
+        log(tab.url + ' is on the ignorelist');
         return;
     }
 
