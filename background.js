@@ -34,7 +34,9 @@ function onCreateTab(tab) {
 }
 
 function onActivateTab(activeInfo) {
-    chrome.tabs.get(activeInfo.tabId, setTabTime);
+    if (activeInfo !== undefined) {
+        chrome.tabs.get(activeInfo.tabId, setTabTime);
+    }
 }
 
 function addPinboardIn(authtoken, url, title, callback) {
