@@ -5,9 +5,9 @@ var options = {
     authtoken: '',
     tag: 'autopark',
     bookmarkfolder: 'autopark',
-    ignoreurls: `chrome://
-google.com/mail
-`
+    ignoreurls: ['chrome://',
+                 'google.com/mail'
+                ].join('\n')
 };
 
 function log(mesg) {
