@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+jshint *.js
+
+7z a autopark.crx \
+    manifest.json \
+    background.js \
+    options.html \
+    options.js \
+    ;
