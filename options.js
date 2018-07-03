@@ -1,7 +1,7 @@
 var options;
 
 function save_options() {
-    for (option in options) {
+    for (var option in options) {
         options[option] = document.getElementById(option).value;
     }
 
@@ -21,7 +21,7 @@ function restore_options() {
     chrome.runtime.getBackgroundPage(function(background) {
         options = background.options;
 
-        for (option in options) {
+        for (var option in options) {
             document.getElementById(option).value = options[option];
         }
     });
