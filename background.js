@@ -22,6 +22,11 @@ function log(mesg) {
 }
 
 function setTabTime(tab) {
+    if (chrome.runtime.lastError) {
+        log('error occurred when trying setTabTime()');
+        return;
+    }
+
     if (tab.url === null || onIgnoreList(tab.url)) {
         return;
     }
@@ -44,61 +49,64 @@ function onActivateTab(activeInfo) {
     }
 }
 
-function addPinboardIn(authtoken, url, title, callback) {
-    var restEndpoint = 'https://api.pinboard.in/v1/posts/add?';
-    var addUrl = restEndpoint + 'url=' + encodeURIComponent(url) +
-        '&description=' + encodeURIComponent(title) + 
-        '&tags=autopark' + 
-        '&toread=yes' +
-        '&replace=no' +  // todo: retrieve existing entry and add autopark tag
-        '&auth_token=' + authtoken;
+function addOrUpdatePinboardIn(authtoken, url, title, callback) {
+    var getUrl = 'https://api.pinboard.in/v1/posts/get?';
+    var u = new URLSearchParams();
+    u.append('auth_token', authtoken);
+    u.append('url', url);
+    fetch(getUrl + u)
+        .then(response => log("get returned: " + response.text()));
+}
 
-    var req = new XMLHttpRequest();
-    req.open('GET', addUrl);
-    req.onload = function() {
-        log('added to pinboard.in! ' + url);
-        if (callback !== null) {
-            callback();
-        }
-    };
-    req.send();
+function addPinboardIn(authtoken, url, title, callback) {
+    var addUrl = 'https://api.pinboard.in/v1/posts/add?';
+    var u = new URLSearchParams();
+    u.append('description', title);
+    u.append('tags', 'autopark');
+    u.append('toread', 'yes');
+    u.append('replace', 'no');
+    u.append('auth_token', authtoken);
+    u.append('url', url);
+
+    fetch(addUrl + u)
+        .then(log('added to pinboard.in: ' + url))
+        .then(callback());
 }
 
 function addTabToBookmarkFolder(tab, foldername) {
     chrome.bookmarks.search(foldername, function(results){
-        var folder = results[0];
-        chrome.bookmarks.create({parentId: folder.id, title: tab.title, url: tab.url});
+        if (chrome.runtime.lastError) {
+            log('caught an error while trying to add bookmark');
+        } else {
+            var folder = results[0];
+            chrome.bookmarks.create({parentId: folder.id, title: tab.title, url: tab.url});
+        }
     });
 }
 
 function onIgnoreList(url) {
-    var whitelist = options.ignoreurls.split('\n');
-    matches = whitelist.filter(x => x !== '' && url.indexOf(x) > -1);
+    var re_list = options.ignoreurls.split('\n').filter(x => x !== '').map(x => new RegExp(x));
+    matches = re_list.filter(x => url.match(x));
     return matches.length > 0;
 }
 
 function openPinboardTab(authtoken) {
     // get username from authtoken
     var username = authtoken.substr(0, authtoken.indexOf(':'));
-    var url = 'https://pinboard.in/u:' + username + 't:autopark';
+    var url = 'https://pinboard.in/u:' + username + 't:autopark/unread';
     // refresh tab if active else open a new one
     chrome.tabs.query({url: url}, function(results) {
         if (chrome.runtime.lastError) {
-            log('creating a new pinboard windows');
-            chrome.tabs.create({url: 'https://pinboard.in/u:presto8/t:autopark'});
+            log('creating a new pinboard tab');
+            chrome.tabs.create({url: url});
         } else {
-            log('refreshing existing windows');
+            log('refreshing existing tab');
             results.map(x => chrome.tabs.reload(x.id));
         }
     });
 }
 
 function onOldTab(tabid, tab) {
-    if (chrome.runtime.lastError) {
-        delete tabTimes[tabid];
-        return;
-    }
-
     if (tab.url === null) {
         log('removing tab without an url: ', tabid);
         delete tabTimes[tabid];
