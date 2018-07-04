@@ -135,15 +135,34 @@ function onOldTab(tabid, tab) {
 }
 
 function findTabsOlderThanMinutes(minutes) {
+    // define handler here since jshint doesn't like function declaration
+    // inside a loop
+    var tab_handler = function(tabid) {
+        chrome.tabs.get(tabid, function(tab){
+            if (chrome.runtime.lastError) {
+                delete tabTimes[tabid];
+            } else {
+                onOldTab(tabid, tab);
+            }
+        });
+    };
+
     var cutoffTime = new Date();
     cutoffTime.setMinutes(cutoffTime.getMinutes() - minutes);
 
+    var numParked = 0;
     for (var tabid in tabTimes) {
         tabid = parseInt(tabid);
         var tabLastActiveTime = tabTimes[tabid];
         if (tabLastActiveTime < cutoffTime) {
-            chrome.tabs.get(tabid, function(tab){ onOldTab(tabid, tab); });
+            tab_handler(tabid);
+            numParked++;
         }
+    }
+
+    if (numParked > 0) {
+        log("parked " + numParked);
+        openPinboardTab(options.authtoken);
     }
 }
 
