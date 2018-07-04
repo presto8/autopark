@@ -1,5 +1,10 @@
 var debugMode = true;
+
+/* tabTimes is the work horse of this extension. tabs are stored as an
+ * associative array, tabid: tabtime.
+ */
 var tabTimes = [];
+
 var options = {
     parktime: 90,
     authtoken: '',
