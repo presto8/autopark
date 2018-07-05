@@ -10,6 +10,9 @@ var options = {
     authtoken: '',
     tag: 'autopark',
     bookmarkfolder: 'autopark',
+
+    // ignoreurls has to be a single string; when it is parsed later, it will
+    // be converted to a list
     ignoreurls: ['chrome://',
                  'google.com/mail'
                 ].join('\n')
