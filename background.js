@@ -39,7 +39,13 @@ function setTabTime(tab) {
 }
 
 function periodic() {
-    findTabsOlderThanMinutes(options.parktime);
+    newparkTabsOlderThanMinutes(options.parktime)
+        .then(function(numParked) {
+            if (numParked > 0) {
+                log("parked " + numParked + " tab(s)");
+                openPinboardTab(options.authtoken);
+            }
+        });
 }
 
 function onCreateTab(tab) {
@@ -52,27 +58,47 @@ function onActivateTab(activeInfo) {
     }
 }
 
-function addOrUpdatePinboardIn(authtoken, url, title, callback) {
+function createOrGetPinboardEntry(authtoken, url, title, callback) {
+    // retrieves existing entry or creates new one, returns parameter list to use for adding
+    var newEntry = {
+        'url': url,
+        'description': title,  // "description" is the title on pinboard, "extended" is the description
+        'tags': 'autopark',
+        'toread': 'yes',
+        'auth_token': authtoken
+    };
+
     var getUrl = 'https://api.pinboard.in/v1/posts/get?';
-    var u = new URLSearchParams();
-    u.append('auth_token', authtoken);
-    u.append('url', url);
+    var u = new URLSearchParams({auth_token: authtoken,
+                                 url: url,
+                                 format: 'json'});
     fetch(getUrl + u)
-        .then(response => log("get returned: " + response.text()));
+        .then(resp => resp.text())
+        .then(text => JSON.parse(text))
+        .then(function(json) {
+            if (json.posts.length > 0) {
+                if (json.posts.length != 1) {
+                    log("warning, multiple posts returned, only updating first");
+                }
+
+                var old = json.posts[0];
+                log("updating existing entry");
+                log(old);
+
+                newEntry.description = old.description;
+                newEntry.extended = old.extended;
+                newEntry.tags = old.tags + " autopark";
+                newEntry.dt = new Date().toISOString();  // update timestamp to now to bring to top of list
+            }
+        });
+
+    return newEntry;
 }
 
-function addPinboardIn(authtoken, url, title, callback) {
+function addPinboardIn(authtoken, newEntry, callback) {
     var addUrl = 'https://api.pinboard.in/v1/posts/add?';
-    var u = new URLSearchParams();
-    u.append('description', title);
-    u.append('tags', 'autopark');
-    u.append('toread', 'yes');
-    u.append('replace', 'no');
-    u.append('auth_token', authtoken);
-    u.append('url', url);
-
+    var u = new URLSearchParams(newEntry);
     fetch(addUrl + u)
-        .then(log('added to pinboard.in: ' + url))
         .then(callback());
 }
 
@@ -82,7 +108,12 @@ function addTabToBookmarkFolder(tab, foldername) {
             log('caught an error while trying to add bookmark');
         } else {
             var folder = results[0];
-            chrome.bookmarks.create({parentId: folder.id, title: tab.title, url: tab.url});
+            chrome.bookmarks.create({parentId: folder.id, title: tab.title, url: tab.url},
+                function() {
+                    if (chrome.runtime.lastError) {
+                        log("error occurred while trying to add bookmark, already exists maybe?");
+                    }
+                });
         }
     });
 }
@@ -103,7 +134,7 @@ function openPinboardTab(authtoken) {
             log('creating a new pinboard tab');
             chrome.tabs.create({url: url});
         } else {
-            log('refreshing existing tab');
+            log('refreshing existing pinboard autopark:toread tab');
             results.map(x => chrome.tabs.reload(x.id));
         }
     });
@@ -129,15 +160,15 @@ function onOldTab(tabid, tab) {
         return;
     }
 
-    addPinboardIn(authtoken, tab.url, tab.title, function() {
+    var newEntry = createOrGetPinboardEntry(authtoken, tab.url, tab.title);
+    addPinboardIn(authtoken, newEntry, function() {
+        log('added to pinboard.in: ' + newEntry);
         chrome.tabs.remove(tab.id);
         delete tabTimes[tabid];
     });
-
-    openPinboardTab(authtoken);
 }
 
-function findTabsOlderThanMinutes(minutes) {
+function newparkTabsOlderThanMinutes(minutes) {
     // define handler here since jshint doesn't like function declaration
     // inside a loop
     var tab_handler = function(tabid) {
@@ -149,42 +180,29 @@ function findTabsOlderThanMinutes(minutes) {
             }
         });
     };
+    
+    return new Promise(function(resolve, reject) {
+        var cutoffTime = new Date();
+        cutoffTime.setMinutes(cutoffTime.getMinutes() - minutes);
 
-    var cutoffTime = new Date();
-    cutoffTime.setMinutes(cutoffTime.getMinutes() - minutes);
-
-    var numParked = 0;
-    for (var tabid in tabTimes) {
-        tabid = parseInt(tabid);
-        var tabLastActiveTime = tabTimes[tabid];
-        if (tabLastActiveTime < cutoffTime) {
-            tab_handler(tabid);
-            numParked++;
-        }
-    }
-
-    if (numParked > 0) {
-        log("parked " + numParked);
-        openPinboardTab(options.authtoken);
-    }
-}
-
-function restoreOptions() {
-    chrome.storage.sync.get(options, function(items) {
-        for (var item in items) {
-            options[item] = items[item];
+        var numParked = 0;
+        for (var tabid in tabTimes) {
+            tabid = parseInt(tabid);
+            var tabLastActiveTime = tabTimes[tabid];
+            if (tabLastActiveTime < cutoffTime) {
+                tab_handler(tabid);
+                numParked++;
+            }
         }
 
-        // Initialize current time for all existing tabs
-        chrome.tabs.query({}, function(tabs){ tabs.map(setTabTime); });
+        resolve(numParked);
     });
 }
 
-function init() {
-    restoreOptions();
-
-//    // Initialize current time for all existing tabs
-//    chrome.tabs.query({}, function(tabs){ tabs.map(setTabTime); });
+function postRestore() {
+    // Initialize current time for all existing tabs
+    //chrome.tabs.query({}, function(tabs){ tabs.map(setTabTime); });
+    chrome.tabs.query({}, tabs => tabs.map(setTabTime));
 
     // Register callback to listen for new tabs created from now on
     chrome.tabs.onCreated.addListener(onCreateTab);
@@ -204,6 +222,22 @@ function init() {
     setInterval(periodic, 60 * 1000);
 
     // chrome.windows.onFocusChanged.addListener(setTabTime);
+}
+
+function restoreOptions() {
+    chrome.storage.sync.get(options, function(items) {
+        for (var item in items) {
+            options[item] = items[item];
+        }
+
+        // Do all init in a post-restore function; otherwise, the options may not
+        // have been loaded before the methods are called.
+        postRestore();
+    });
+}
+
+function init() {
+    restoreOptions();
 }
 
 window.addEventListener('load', init);
