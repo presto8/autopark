@@ -39,7 +39,7 @@ function setTabTime(tab) {
 }
 
 function periodic() {
-    newparkTabsOlderThanMinutes(options.parktime)
+    parkTabsOlderThanMinutes(options.parktime)
         .then(function(numParked) {
             if (numParked > 0) {
                 log("parked " + numParked + " tab(s)");
@@ -168,7 +168,7 @@ function onOldTab(tabid, tab) {
     });
 }
 
-function newparkTabsOlderThanMinutes(minutes) {
+function parkTabsOlderThanMinutes(minutes) {
     // define handler here since jshint doesn't like function declaration
     // inside a loop
     var tab_handler = function(tabid) {
