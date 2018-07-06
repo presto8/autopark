@@ -30,7 +30,7 @@ function setTabTime(tab) {
         return;
     }
 
-    if (tab.url === null || onIgnoreList(tab.url)) {
+    if (tab.url === undefined || onIgnoreList(tab.url)) {
         return;
     }
 
