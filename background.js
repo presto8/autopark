@@ -149,6 +149,7 @@ function onOldTab(tabid, tab) {
 
     if (onIgnoreList(tab.url)) {
         log(tab.url + ' is on the ignorelist');
+        delete tabTimes[tabid];
         return;
     }
 
@@ -169,20 +170,22 @@ function onOldTab(tabid, tab) {
 }
 
 function parkTabsOlderThanMinutes(minutes) {
-    // define handler here since jshint doesn't like function declaration
-    // inside a loop
-    var tab_handler = function(tabid) {
-        chrome.tabs.get(tabid, function(tab){
-            if (chrome.runtime.lastError) {
-                delete tabTimes[tabid];
-            } else {
-                onOldTab(tabid, tab);
-            }
-        });
-    };
-    
     return new Promise(function(resolve, reject) {
+        // define handler here since jshint doesn't like function declaration
+        // inside a loop
+        var tab_handler = function(tabid) {
+            log("tab_handler for " + tabid);
+            chrome.tabs.get(tabid, function(tab){
+                if (chrome.runtime.lastError) {
+                    delete tabTimes[tabid];
+                } else {
+                    onOldTab(tabid, tab);
+                }
+            });
+        };
+
         var cutoffTime = new Date().getTime() - minutes * 60 * 1000;
+        log("cutoffTime is " + cutoffTime);
         var numParked = 0;
         for (var tabid in tabTimes) {
             tabid = parseInt(tabid);
