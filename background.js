@@ -1,10 +1,10 @@
 var debugMode = true;
 
-/* tabTimes is the work horse of this extension. tabs are stored as an
- * associative array, tabid: tabtime. Times stored in Unix epoch milliseconds
- * (which is what JavaScript getTime() returns).
+/* tabTimes is the work horse of this extension. tabs are stored using this
+ * object like an associative array, tabid: tabtime. Times stored in Unix epoch
+ * milliseconds (which is what JavaScript getTime() returns).
  */
-var tabTimes = [];
+var tabTimes = {};
 
 var options = {
     parktime: 90,
@@ -186,12 +186,12 @@ function parkTabsOlderThanMinutes(minutes) {
         };
 
         var cutoffTime = new Date().getTime() - minutes * 60 * 1000;
-        log("cutoffTime is " + cutoffTime);
+        log("cutoffTime is " + cutoffTime + ", " + Object.keys(tabTimes).length + " entries in tabTimes");
+
         var numParked = 0;
         for (var tabid in tabTimes) {
             tabid = parseInt(tabid);
-            var tabLastActiveTime = tabTimes[tabid];
-            if (tabLastActiveTime < cutoffTime) {
+            if (tabTimes[tabid] < cutoffTime) {
                 tab_handler(tabid);
                 numParked++;
             }
