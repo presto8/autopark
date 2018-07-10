@@ -88,6 +88,7 @@ function createOrGetPinboardEntry(authtoken, url, title, callback) {
                 newEntry.description = old.description;
                 newEntry.extended = old.extended;
                 newEntry.tags = old.tags + " autopark";
+                newEntry.toread = old.toread;
                 newEntry.dt = new Date().toISOString();  // update timestamp to now to bring to top of list
             }
         });
