@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 
+cd extension
+
 jshint *.js
 
-7z a autopark.crx \
+7z a ../autopark.crx \
     manifest.json \
     background.js \
     options.html \
     options.js \
     ;
+
+cd ..
