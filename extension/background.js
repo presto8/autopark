@@ -53,7 +53,13 @@ function onCreateTab(tab) {
     setTabTime(tab);
 }
 
+function onRemoveTab(tabId, removeInfo) {
+    log(tabId + 'closed by user');
+    delete tabTimes[tabId];
+}
+
 function onActivateTab(activeInfo) {
+    log("tab activated " + activeInfo);
     if (activeInfo !== undefined) {
         chrome.tabs.get(activeInfo.tabId, setTabTime);
     }
@@ -108,6 +114,7 @@ function addTabToBookmarkFolder(tab, foldername) {
     chrome.bookmarks.search(foldername, function(results){
         if (chrome.runtime.lastError) {
             log('caught an error while trying to add bookmark');
+            log(chrome.runtime.lastError);
         } else {
             var folder = results[0];
             chrome.bookmarks.create({parentId: folder.id, title: tab.title, url: tab.url},
@@ -165,7 +172,7 @@ function onOldTab(tabid, tab) {
 
     var newEntry = createOrGetPinboardEntry(authtoken, tab.url, tab.title);
     addPinboardIn(authtoken, newEntry, function() {
-        log('added to pinboard.in: ' + newEntry);
+        log('added to pinboard.in: ' + tab.url);
         chrome.tabs.remove(tab.id);
         delete tabTimes[tabid];
     });
@@ -213,6 +220,9 @@ function postRestore() {
 
     // Register callback to listen for new tabs created from now on
     chrome.tabs.onCreated.addListener(onCreateTab);
+
+    // Remove tabs when they are closed
+    chrome.tabs.onRemoved.addListener(onRemoveTab);
 
     // Update a tab's time whenever it's activated
     chrome.tabs.onActivated.addListener(onActivateTab);
