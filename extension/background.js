@@ -45,6 +45,7 @@ function periodic() {
                 log("parked " + numParked + " tab(s)");
                 openPinboardTab(options.authtoken);
             }
+            runPeriodic();
         });
 }
 
@@ -201,6 +202,10 @@ function parkTabsOlderThanMinutes(minutes) {
     });
 }
 
+function runPeriodic() {
+    setTimeout(periodic, 60 * 1000);
+}
+
 function postRestore() {
     // Initialize current time for all existing tabs
     //chrome.tabs.query({}, function(tabs){ tabs.map(setTabTime); });
@@ -221,7 +226,7 @@ function postRestore() {
     chrome.tabs.onRemoved.addListener(x => delete tabTimes[x.id]);
 
     // Run periodic scheduler every minute
-    setInterval(periodic, 60 * 1000);
+    runPeriodic();
 
     // chrome.windows.onFocusChanged.addListener(setTabTime);
 }
