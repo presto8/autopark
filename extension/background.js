@@ -54,7 +54,7 @@ function onCreateTab(tab) {
 }
 
 function onRemoveTab(tabId, removeInfo) {
-    log(tabId + 'closed by user');
+    log(tabId + ' closed by user');
     delete tabTimes[tabId];
 }
 
