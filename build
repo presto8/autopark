@@ -1,14 +1,24 @@
 #!/usr/bin/env bash
 
-cd extension
+make_crx() (
+    cd extension
 
-jshint *.js
+    jshint *.js
 
-7z a ../autopark.crx \
-    manifest.json \
-    background.js \
-    options.html \
-    options.js \
-    ;
+    7z a ../builds/autopark.crx \
+        manifest.json \
+        background.js \
+        options.html \
+        options.js \
+        ;
 
-cd ..
+    cd ..
+)
+
+make_zip() (
+    zip -r builds/autopark.zip extension
+)
+
+mkdir -p builds
+make_crx
+make_zip
