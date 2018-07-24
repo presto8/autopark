@@ -1,24 +1,23 @@
 #!/usr/bin/env bash
 
+set -e -x
+
+FILES="
+background.js
+manifest.json
+options.html
+options.js
+"
+
 make_crx() (
-    cd extension
-
-    jshint *.js
-
-    7z a ../builds/autopark.crx \
-        manifest.json \
-        background.js \
-        options.html \
-        options.js \
-        ;
-
-    cd ..
+    7z a builds/autopark.crx $FILES
 )
 
 make_zip() (
-    zip -r builds/autopark.zip extension
+    zip builds/autopark.zip $FILES
 )
 
 mkdir -p builds
+jshint *.js
 make_crx
 make_zip

@@ -59,7 +59,7 @@ function onRemoveTab(tabId, removeInfo) {
 }
 
 function onActivateTab(activeInfo) {
-    log("tab activated " + activeInfo);
+    log("tab activated " + activeInfo.tabId);
     if (activeInfo !== undefined) {
         chrome.tabs.get(activeInfo.tabId, setTabTime);
     }
@@ -162,7 +162,7 @@ function onOldTab(tabid, tab) {
         return;
     }
 
-    addTabToBookmarkFolder(tab, options.bookmarkfolder);
+    // addTabToBookmarkFolder(tab, options.bookmarkfolder);
 
     var authtoken = options.authtoken;
     if (authtoken.length === 0) {
