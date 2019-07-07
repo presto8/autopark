@@ -1,3 +1,6 @@
+/* TODO: Rewrite to use Date.now() native data objects instead of ms
+ * 
+ */
 var debugMode = true;
 
 /* tabTimes is the work horse of this extension. tabs are stored using this
@@ -6,7 +9,6 @@ var debugMode = true;
  */
 var tabTimes = {};
 var lastCheck = getNowMs();
-var checkIntervalSeconds = 60;
 
 var options = {
     parktime: 90,
@@ -31,14 +33,6 @@ function getNowMs() {
     return new Date().getTime();
 }
 
-function heartbeatCheck() {
-    // Make sure setTimeout() has run at least within the last 5 check intervals
-    var cutoff = getNowMs() - checkIntervalSeconds * 1000 * 5;
-    if (lastCheck < cutoff) {
-        log("warning! no check within last 5 intervals");
-    }
-}
-
 function setTabTime(tab) {
     if (chrome.runtime.lastError) {
         log('error occurred when trying setTabTime()');
@@ -50,8 +44,6 @@ function setTabTime(tab) {
     }
 
     tabTimes[tab.id] = getNowMs();
-
-    heartbeatCheck();
 }
 
 function periodic() {
@@ -61,7 +53,7 @@ function periodic() {
                 log("parked " + numParked + " tab(s)");
                 openPinboardTab(options.authtoken);
             }
-            runPeriodic();
+            // runPeriodic();
         });
 }
 
@@ -226,11 +218,6 @@ function parkTabsOlderThanMinutes(minutes) {
     });
 }
 
-function runPeriodic() {
-    setTimeout(periodic, checkIntervalSeconds * 1000);
-    lastCheck = getNowMs();
-}
-
 function postRestore() {
     // Initialize current time for all existing tabs
     //chrome.tabs.query({}, function(tabs){ tabs.map(setTabTime); });
@@ -253,10 +240,17 @@ function postRestore() {
     // Remove tab whenever it's closed
     chrome.tabs.onRemoved.addListener(x => delete tabTimes[x.id]);
 
-    // Run periodic scheduler every minute
-    runPeriodic();
-
     // chrome.windows.onFocusChanged.addListener(setTabTime);
+
+    // Create an alarm to run our periodic task. Don't use setTimeout because
+    // Chrome will automatically suspend tabs after some inactivity which will
+    // cause the timeout to stop working.
+    // chrome.alarms.create("Alarm", {delayInMinutes: 1, periodInMinutes: 1});
+    chrome.alarms.create({periodInMinutes: 1});
+    chrome.alarms.onAlarm.addListener(function(alarm) {
+        console.log("Got an alarm!", alarm);
+        periodic();
+    });
 }
 
 function restoreOptions() {

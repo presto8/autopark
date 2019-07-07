@@ -6,7 +6,8 @@
         "tabs",
         "bookmarks",
         "storage",
-        "https://api.pinboard.in/*"
+        "https://api.pinboard.in/*",
+        "alarms"
     ],
     "background": {
         "scripts": ["background.js"],
