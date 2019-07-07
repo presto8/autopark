@@ -5,6 +5,8 @@ var debugMode = true;
  * milliseconds (which is what JavaScript getTime() returns).
  */
 var tabTimes = {};
+var lastCheck = getNowMs();
+var checkIntervalSeconds = 60;
 
 var options = {
     parktime: 90,
@@ -25,6 +27,18 @@ function log(mesg) {
     }
 }
 
+function getNowMs() {
+    return new Date().getTime();
+}
+
+function heartbeatCheck() {
+    // Make sure setTimeout() has run at least within the last 5 check intervals
+    var cutoff = getNowMs() - checkIntervalSeconds * 1000 * 5;
+    if (lastCheck < cutoff) {
+        log("warning! no check within last 5 intervals");
+    }
+}
+
 function setTabTime(tab) {
     if (chrome.runtime.lastError) {
         log('error occurred when trying setTabTime()');
@@ -35,7 +49,9 @@ function setTabTime(tab) {
         return;
     }
 
-    tabTimes[tab.id] = new Date().getTime();
+    tabTimes[tab.id] = getNowMs();
+
+    heartbeatCheck();
 }
 
 function periodic() {
@@ -54,14 +70,15 @@ function onCreateTab(tab) {
 }
 
 function onRemoveTab(tabId, removeInfo) {
-    log(tabId + ' closed by user');
+    log('tab ' + tabId + ' closed by user');
     delete tabTimes[tabId];
 }
 
 function onActivateTab(activeInfo) {
-    log("tab activated " + activeInfo.tabId);
     if (activeInfo !== undefined) {
-        chrome.tabs.get(activeInfo.tabId, setTabTime);
+        var tabId = activeInfo.tabId;
+        log("tab " + tabId + " activated");
+        chrome.tabs.get(tabId, setTabTime);
     }
 }
 
@@ -193,7 +210,7 @@ function parkTabsOlderThanMinutes(minutes) {
             });
         };
 
-        var cutoffTime = new Date().getTime() - minutes * 60 * 1000;
+        var cutoffTime = getNowMs() - minutes * options.parktime * 1000;
         log("cutoffTime is " + cutoffTime + ", " + Object.keys(tabTimes).length + " entries in tabTimes");
 
         var numParked = 0;
@@ -210,7 +227,8 @@ function parkTabsOlderThanMinutes(minutes) {
 }
 
 function runPeriodic() {
-    setTimeout(periodic, 60 * 1000);
+    setTimeout(periodic, checkIntervalSeconds * 1000);
+    lastCheck = getNowMs();
 }
 
 function postRestore() {
