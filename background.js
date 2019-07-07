@@ -248,7 +248,6 @@ function postRestore() {
     // chrome.alarms.create("Alarm", {delayInMinutes: 1, periodInMinutes: 1});
     chrome.alarms.create({periodInMinutes: 1});
     chrome.alarms.onAlarm.addListener(function(alarm) {
-        console.log("Got an alarm!", alarm);
         periodic();
     });
 }
