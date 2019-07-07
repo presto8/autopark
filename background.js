@@ -1,6 +1,3 @@
-/* TODO: Rewrite to use Date.now() native data objects instead of ms
- * 
- */
 var debugMode = true;
 
 /* tabTimes is the work horse of this extension. tabs are stored using this
