@@ -47,7 +47,7 @@ function periodic() {
     parkTabsOlderThanMinutes(options.parktime)
         .then(function(numParked) {
             if (numParked > 0) {
-                log("parked " + numParked + " tab(s)");
+                log(`parked ${numParked} tab(s)`);
                 openPinboardTab(options.authtoken);
             }
         });
@@ -58,14 +58,14 @@ function onCreateTab(tab) {
 }
 
 function onRemoveTab(tabId, removeInfo) {
-    log('tab ' + tabId + ' closed by user');
+    log(`tab ${tabId} closed by user`);
     delete tabTimes[tabId];
 }
 
 function onActivateTab(activeInfo) {
     if (activeInfo !== undefined) {
         var tabId = activeInfo.tabId;
-        log("tab " + tabId + " activated");
+        log(`tab ${tabId} activated`);
         chrome.tabs.get(tabId, setTabTime);
     }
 }
@@ -141,7 +141,7 @@ function onIgnoreList(url) {
 function openPinboardTab(authtoken) {
     // get username from authtoken
     var username = authtoken.substr(0, authtoken.indexOf(':'));
-    var url = 'https://pinboard.in/u:' + username + 't:autopark/unread';
+    var url = `https://pinboard.in/u:${username}/t:autopark/unread`;
     // refresh tab if active else open a new one
     chrome.tabs.query({url: url}, function(results) {
         if (chrome.runtime.lastError) {
@@ -156,13 +156,13 @@ function openPinboardTab(authtoken) {
 
 function onOldTab(tabid, tab) {
     if (tab.url === null) {
-        log('removing tab without an url: ', tabid);
+        log(`removing tab without an url: ${tabid}`);
         delete tabTimes[tabid];
         return;
     }
 
     if (onIgnoreList(tab.url)) {
-        log(tab.url + ' is on the ignorelist');
+        log(`${tab.url} is on the ignorelist`);
         delete tabTimes[tabid];
         return;
     }
@@ -179,7 +179,7 @@ function onOldTab(tabid, tab) {
 
     var newEntry = createOrGetPinboardEntry(authtoken, tab.url, tab.title);
     addPinboardIn(authtoken, newEntry, function() {
-        log('added to pinboard.in: ' + tab.url);
+        log(`added to pinboard.in: ${tab.url}`);
         chrome.tabs.remove(tab.id);
         delete tabTimes[tabid];
     });
@@ -192,7 +192,7 @@ function parkTabsOlderThanMinutes(minutes) {
         // define handler here since jshint doesn't like function declaration
         // inside a loop
         var tab_handler = function(tabid) {
-            log("tab_handler for " + tabid);
+            log(`tab_handler for ${tabid}`);
             chrome.tabs.get(tabid, function(tab){
                 if (chrome.runtime.lastError) {
                     delete tabTimes[tabid];
@@ -203,7 +203,7 @@ function parkTabsOlderThanMinutes(minutes) {
         };
 
         var cutoffTime = getNowMs() - minutes * options.parktime * 1000;
-        log("cutoffTime is " + cutoffTime + ", " + Object.keys(tabTimes).length + " entries in tabTimes");
+        log(`cutoffTime is ${cutoffTime}, ${Object.keys(tabTimes).length} entries in tabTimes`);
 
         var numParked = 0;
         for (var tabid in tabTimes) {
