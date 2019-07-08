@@ -167,7 +167,9 @@ function onOldTab(tabid, tab) {
         return;
     }
 
-    // addTabToBookmarkFolder(tab, options.bookmarkfolder);
+    if (options.bookmarkfolder) {
+        addTabToBookmarkFolder(tab, options.bookmarkfolder);
+    }
 
     var authtoken = options.authtoken;
     if (authtoken.length === 0) {
@@ -181,6 +183,8 @@ function onOldTab(tabid, tab) {
         chrome.tabs.remove(tab.id);
         delete tabTimes[tabid];
     });
+
+    // TODO: Add to recently closed tabs
 }
 
 function parkTabsOlderThanMinutes(minutes) {
@@ -241,7 +245,7 @@ function postRestore() {
     // Create an alarm to run our periodic task. Don't use setTimeout because
     // Chrome will automatically suspend tabs after some inactivity which will
     // cause the timeout to stop working.
-    // chrome.alarms.create("Alarm", {delayInMinutes: 1, periodInMinutes: 1});
+    // See: https://stackoverflow.com/questions/26539801/chrome-extension-settimeout-not-working-properly
     chrome.alarms.create({periodInMinutes: 1});
     chrome.alarms.onAlarm.addListener(function(alarm) {
         periodic();
