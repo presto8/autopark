@@ -50,7 +50,6 @@ function periodic() {
                 log("parked " + numParked + " tab(s)");
                 openPinboardTab(options.authtoken);
             }
-            // runPeriodic();
         });
 }
 
