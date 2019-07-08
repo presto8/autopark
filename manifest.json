@@ -19,7 +19,8 @@
     },
     "browser_action": {
         "default_title": "autopark",
-        "default_icon": "favicon-1024.png"
+        "default_icon": "favicon-1024.png",
+        "default_popup": "popup.html"
     },
     "manifest_version": 2
 }
