@@ -5,7 +5,7 @@ var debugMode = true;
  * milliseconds (which is what JavaScript getTime() returns).
  */
 var tabTimes = {};
-var lastCheck = getNowMs();
+var parkedHistory = [];
 
 var options = {
     parktime: 90,
@@ -26,10 +26,6 @@ function log(mesg) {
     }
 }
 
-function getNowMs() {
-    return new Date().getTime();
-}
-
 function setTabTime(tab) {
     if (chrome.runtime.lastError) {
         log('error occurred when trying setTabTime()');
@@ -40,7 +36,7 @@ function setTabTime(tab) {
         return;
     }
 
-    tabTimes[tab.id] = getNowMs();
+    tabTimes[tab.id] = new Date();
 }
 
 function periodic() {
@@ -184,7 +180,8 @@ function onOldTab(tabid, tab) {
         delete tabTimes[tabid];
     });
 
-    // TODO: Add to recently closed tabs
+    // Add to recently closed tabs
+    parkedHistory.push({'title': tab.title, 'url': tab.url});
 }
 
 function parkTabsOlderThanMinutes(minutes) {
@@ -202,13 +199,12 @@ function parkTabsOlderThanMinutes(minutes) {
             });
         };
 
-        var cutoffTime = getNowMs() - minutes * options.parktime * 1000;
-        log(`cutoffTime is ${cutoffTime}, ${Object.keys(tabTimes).length} entries in tabTimes`);
-
+        var cutoff_ms = minutes * 60 * 1000;
         var numParked = 0;
         for (var tabid in tabTimes) {
             tabid = parseInt(tabid);
-            if (tabTimes[tabid] < cutoffTime) {
+            age_ms = new Date() - tabTimes[tabid]
+            if (age_ms > cutoff_ms) {
                 tab_handler(tabid);
                 numParked++;
             }
@@ -220,7 +216,6 @@ function parkTabsOlderThanMinutes(minutes) {
 
 function postRestore() {
     // Initialize current time for all existing tabs
-    //chrome.tabs.query({}, function(tabs){ tabs.map(setTabTime); });
     chrome.tabs.query({}, tabs => tabs.map(setTabTime));
 
     // Register callback to listen for new tabs created from now on
