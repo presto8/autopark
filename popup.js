@@ -1,5 +1,5 @@
 function getRecentPinboard(authtoken) {
-    var url = `https://api.pinboard.in/v1/posts/recent?auth_token=${authtoken}&format=json`;
+    var url = `https://api.pinboard.in/v1/posts/recent?auth_token=${authtoken}&format=json&tag=autopark`;
     fetch(url)
         .then(resp => resp.text())
         .then(text => JSON.parse(text))
