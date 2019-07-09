@@ -203,7 +203,7 @@ function parkTabsOlderThanMinutes(minutes) {
         var numParked = 0;
         for (var tabid in tabTimes) {
             tabid = parseInt(tabid);
-            age_ms = new Date() - tabTimes[tabid]
+            age_ms = new Date() - tabTimes[tabid];
             if (age_ms > cutoff_ms) {
                 tab_handler(tabid);
                 numParked++;
