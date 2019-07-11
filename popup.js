@@ -1,6 +1,14 @@
+function handleErrors(response) {
+    if (!response.ok) {
+        throw Error(response.statusText);
+    }
+    return response;
+}
+
 function getRecentPinboard(authtoken) {
     var url = `https://api.pinboard.in/v1/posts/recent?auth_token=${authtoken}&format=json&tag=autopark`;
     fetch(url)
+        .then(handleErrors)
         .then(resp => resp.text())
         .then(text => JSON.parse(text))
         .then(function(json) {
