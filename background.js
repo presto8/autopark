@@ -6,6 +6,7 @@ var debugMode = true;
  */
 var tabTimes = {};
 var parkedHistory = [];
+var lastRun = new Date();
 
 var options = {
     parktime: 90,
@@ -39,7 +40,24 @@ function setTabTime(tab) {
     tabTimes[tab.id] = new Date();
 }
 
+function checkForSuspend() {
+    // Record time between runs. It should be about 1 minute. If time is much
+    // greater, than system was suspended. Update the times for all tabs to
+    // compensate.
+    var now = new Date();
+    var ms_since_last_run = now - lastRun;
+    lastRun = now;
+
+    if (ms_since_last_run > 120 * 1000) {
+        log(`probably waking up from a suspend, adjusting tabTimes += ms_since_last_run=${ms_since_last_run}`);
+        for (var i in tabTimes) {
+            tabTimes[i] = new Date(tabTimes[i].getTime() + ms_since_last_run);
+        }
+    }
+}
+
 function periodic() {
+    checkForSuspend();
     parkTabsOlderThanMinutes(options.parktime)
         .then(function(numParked) {
             if (numParked > 0) {
@@ -242,9 +260,7 @@ function postRestore() {
     // cause the timeout to stop working.
     // See: https://stackoverflow.com/questions/26539801/chrome-extension-settimeout-not-working-properly
     chrome.alarms.create({periodInMinutes: 1});
-    chrome.alarms.onAlarm.addListener(function(alarm) {
-        periodic();
-    });
+    chrome.alarms.onAlarm.addListener(periodic);
 }
 
 function restoreOptions() {
