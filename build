@@ -8,6 +8,8 @@ manifest.json
 options.html
 options.js
 favicon-1024.png
+popup.html
+popup.js
 "
 
 make_crx() (
