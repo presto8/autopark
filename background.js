@@ -162,7 +162,7 @@ function openPinboardTab(authtoken) {
             log('creating a new pinboard tab');
             chrome.tabs.create({url: url});
         } else {
-            log('refreshing existing pinboard autopark:toread tab');
+            log('refreshing existing pinboard autopark:unread tab');
             results.map(x => chrome.tabs.reload(x.id));
         }
     });
